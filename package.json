@@ -1,0 +1,23 @@
+{
+  "name": "cvs-vax-bot",
+  "version": "1.0.0",
+  "description": "Headless puppeteer bot used to identify available CVS Covid-19 vaccine appointments and alert through SMS",
+  "main": "cvs_vax_bot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mmccarthy404/cvs-vax-bot.git"
+  },
+  "author": "Michael McCarthy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mmccarthy404/cvs-vax-bot/issues"
+  },
+  "homepage": "https://github.com/mmccarthy404/cvs-vax-bot#readme",
+  "dependencies": {
+    "aws-sdk": "^2.865.0",
+    "puppeteer": "^8.0.0"
+  }
+}
