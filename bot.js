@@ -1,44 +1,51 @@
 const puppeteer = require('puppeteer')
 const AWS = require('aws-sdk')
 
-AWS.config.update({region: 'us-east-1'});
-
-phone = process.env.phone
-state = process.env.state
-
-var sms_params = {
-	Message: 'Appointments Available: https://www.cvs.com/immunizations/covid-19-vaccine',
-	PhoneNumber: phone
-}
+AWS.config.update({region: 'us-east-1'})
 
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-function sendSMS() {
-	return new AWS.SNS({apiVersion: '2010-03-31'}).publish(sms_params).promise()
+function sendSMS(message, phone) {
+	return new AWS.SNS({apiVersion: '2010-03-31'}).publish({
+		Message: message,
+		PhoneNumber: phone
+	}).promise()
 }
 
-(async () => {
+(async() => {
 	const browser = await puppeteer.launch({
 		headless: true,
 		args: ['--no-sandbox','--disable-setuid-sandbox']
 	})
 	const page = await browser.newPage()
 	await page.goto('https://www.cvs.com/immunizations/covid-19-vaccine')
+	await page.addScriptTag({url: 'https://code.jquery.com/jquery-3.3.1.slim.min.js'})
+	let available = []
 	while (true) {
-		await page.waitForSelector('a[data-analytics-name="' + state + '"]')
-		await page.click('a[data-analytics-name="' + state + '"]')
+		await page.click('a[data-analytics-name="' + process.env.state + '"]')
 		await page.waitForSelector('.modal__content')
-		let isAvailable = await page.evaluate(() => {
-			return document.querySelector('span').innerText.includes('Available')
+		let availableNew = await page.evaluate(() => {
+			return $('span.status').filter(function() {
+				return $(this).text() === "Available"
+			}).parents('tr').find('span.city').map(function(){
+				return $.trim($(this).text())
+			}).get()
 		})
-		if (isAvailable) {
-			await sendSMS()
-			break
-		} else {
-			await page.click('.modal__close')
+		for (let city of availableNew) {
+			if (!available.includes(city)) {
+				let message = [
+					'Appointments Available:',
+					availableNew.join('\n'),
+					'https://www.cvs.com/immunizations/covid-19-vaccine'
+				].join('\n')
+				sendSMS(message, process.env.phone)
+				break
+			}
 		}
+		available = availableNew
+		await page.click('.modal__close')
 		await sleep(600000)
 	}
 })()
