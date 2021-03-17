@@ -17,7 +17,8 @@ function sendSMS(message, phone) {
 (async() => {
 	const browser = await puppeteer.launch({
 		headless: true,
-		args: ['--no-sandbox','--disable-setuid-sandbox']
+		product: 'firefox'
+		//args: ['--no-sandbox','--disable-setuid-sandbox']
 	})
 	const page = await browser.newPage()
 	await page.goto('https://www.cvs.com/immunizations/covid-19-vaccine')
